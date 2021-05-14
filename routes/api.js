@@ -1,3 +1,4 @@
+const { ObjectID } = require('bson');
 const express = require('express');
 
 //define model
@@ -33,6 +34,27 @@ const router = express.Router();
             res.status(500).send({
                 message: err.message || 'Some error occured while creating a create operation'
             });
+        })
+    }
+});
+
+/**
+ * @description Delete Project by ID
+ * @method GET /deleteProject/:id
+ */
+router.get('/deleteProject/:id', jsonParser, (req, res) => {
+    var id = req.params.id;
+
+    if(!ObjectID.isValid(id)) { return res.status(404).send({message: 'ID is Not Found'}) }
+
+    try {
+        Project.findByIdAndRemove(id).then((data) => {
+            if(!data) { res.status(404).send({message: 'Data is Not Found'}) }
+            res.send({message: 'Delete success'});
+        })
+    }catch(err) {
+        res.status(500).send({
+            message: err.message || 'Some error occured while creating a create operation'
         })
     }
 });
