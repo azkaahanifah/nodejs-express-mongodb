@@ -27,8 +27,8 @@ const router = express.Router();
 
         project
         .save()
-        .then((data) => {
-            res.status(201).send({message: 'Success create and store into database'});
+        .then(() => {
+            res.status(201).send({ message: 'Success create and store into database' });
         })
         .catch(err => {
             res.status(500).send({
@@ -40,22 +40,41 @@ const router = express.Router();
 
 /**
  * @description Delete Project by ID
- * @method GET /deleteProject/:id
+ * @method DELETE /deleteProject/:id
  */
-router.get('/deleteProject/:id', jsonParser, (req, res) => {
+router.delete('/deleteProject/:id', jsonParser, async (req, res) => {
+    var id = req.params.id;
+
+    if(!ObjectID.isValid(id)) { return res.status(404).send({ message: 'ID is Not Found' }) }
+
+    try {
+        await Project.findByIdAndRemove(id).then((data) => {
+            if(!data) { res.status(404).send({ message: 'Data is Not Found' }) }
+            res.send({ message: 'Delete project success' });
+        })
+    }catch(err) {
+        res.status(500).send({ message: err.message || 'Some error occured while delete operation' })
+    }
+});
+
+/**
+ * @description 
+ * Update Status Project by ID
+ * CREATED -> IN PROGRESS -> COMPLETED
+ * @method PUT /updateStatus/:id
+ */
+router.put('/updateStatus/:id', jsonParser, async (req, res) => {
     var id = req.params.id;
 
     if(!ObjectID.isValid(id)) { return res.status(404).send({message: 'ID is Not Found'}) }
 
     try {
-        Project.findByIdAndRemove(id).then((data) => {
-            if(!data) { res.status(404).send({message: 'Data is Not Found'}) }
-            res.send({message: 'Delete success'});
+        await Project.findByIdAndUpdate(id, req.body, {new: true}).then((data) => {
+            if(!data) { res.status(404).send({ message: 'Cannot update project. Maybe user not found!' }) }
+            res.send(data);
         })
     }catch(err) {
-        res.status(500).send({
-            message: err.message || 'Some error occured while creating a create operation'
-        })
+        res.status(500).send({ message: err.message || 'Error update project status' });
     }
 });
 
